@@ -14,7 +14,7 @@ COPY . .
 # Build the project using Maven
 RUN mvn clean package
 
-# Use a lightweight OpenJDK 21 image for the final stage
+# Use a lightweight OpenJDK 17 image for the final stage
 FROM openjdk:17-jdk-slim
 
 # Expose the port the application runs on
@@ -24,7 +24,7 @@ EXPOSE 8080
 WORKDIR /app
 
 # Copy the built JAR file from the build stage to the final image
-COPY --from=build /target/myGit-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/myGit-0.0.1-SNAPSHOT.jar app.jar
 
 # Set the entry point to run the JAR file
 ENTRYPOINT ["java", "-jar", "app.jar"]
