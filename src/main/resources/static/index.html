@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Movie Database with OMDb API</title>
+    <title>Movie Database with OMDb and TMDb API</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
         
@@ -85,7 +85,7 @@
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s;
-            color: #FFFFFF; 
+            color: #FFFFFF;
             position: relative;
         }
         
@@ -160,16 +160,38 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .suggestions {
+            background: #2A2A2A;
+            border-radius: 5px;
+            margin-top: 5px;
+            position: absolute;
+            z-index: 1;
+            max-height: 200px;
+            overflow-y: auto;
+            width: calc(100% - 22px);
+        }
+
+        .suggestions div {
+            padding: 10px;
+            cursor: pointer;
+            color: #FFFFFF;
+        }
+
+        .suggestions div:hover {
+            background: #444444;
+        }
     </style>
 </head>
 <body>
-    <h1>Movie Database with OMDb API</h1>
+    <h1>Movie Database with OMDb and TMDb API</h1>
 
     <div class="container omdb-search">
         <h2>Search OMDb for Movie Info</h2>
         <form id="omdbSearchForm">
             <label for="searchTitle">Movie Title:</label>
             <input type="text" id="searchTitle" name="searchTitle" required>
+            <div id="suggestions" class="suggestions"></div>
             <button type="submit">Search</button>
         </form>
         <div id="omdbResults"></div>
@@ -197,7 +219,9 @@
     <script>
         const apiUrl = '/api/movies';
         const omdbApiUrl = 'http://www.omdbapi.com/';
-        const omdbApiKey = '7cf86a1e';
+        const omdbApiKey = 'fe7e5b7e';
+        const tmdbApiUrl = 'https://api.themoviedb.org/3/search/movie';
+        const tmdbApiKey = '5c0e40f081b567f90e5ba7227f9c673e';
 
         async function getAllMovies() {
             const response = await fetch(apiUrl);
@@ -237,6 +261,7 @@
             const searchTitle = document.getElementById('searchTitle').value;
             const response = await fetch(`${omdbApiUrl}?t=${encodeURIComponent(searchTitle)}&apikey=${omdbApiKey}`);
             const data = await response.json();
+            console.log('OMDb API Response:', data); // Log the entire response for debugging
             const omdbResults = document.getElementById('omdbResults');
             omdbResults.innerHTML = '<h3>Search Results</h3>';
             if (data && data.Response === "True") {
@@ -252,6 +277,27 @@
                 `;
             } else {
                 omdbResults.innerHTML += '<p>No results found.</p>';
+                console.error('OMDb API response:', data); // Log the response if no results are found
+            }
+        });
+
+        document.getElementById('searchTitle').addEventListener('input', async () => {
+            const searchTitle = document.getElementById('searchTitle').value;
+            const response = await fetch(`${tmdbApiUrl}?query=${encodeURIComponent(searchTitle)}&api_key=${tmdbApiKey}`);
+            const data = await response.json();
+            console.log('TMDb API Response:', data); // Log the entire response for debugging
+            const suggestions = document.getElementById('suggestions');
+            suggestions.innerHTML = '';
+            if (data.results) {
+                data.results.forEach(movie => {
+                    const div = document.createElement('div');
+                    div.textContent = movie.title;
+                    div.addEventListener('click', () => {
+                        document.getElementById('searchTitle').value = movie.title;
+                        suggestions.innerHTML = '';
+                    });
+                    suggestions.appendChild(div);
+                });
             }
         });
 
