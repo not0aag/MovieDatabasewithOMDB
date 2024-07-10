@@ -1,14 +1,27 @@
-Use Eclipse Temurin as the base image
-FROM eclipse-temurin:17-jdk-alpine
+# Use Ubuntu as base image for the build stage
+FROM ubuntu:latest AS build
 
-Create a volume to store temporary files
-VOLUME /tmp
+# Install OpenJDK 17
+RUN apt-get update && \
+    apt-get install -y openjdk-17-jdk
 
-Copy the built JAR file into the Docker image
-COPY target/*.jar app.jar
+# Set the working directory in the container
+WORKDIR /app
 
-Set the entry point to run the JAR file
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+# Copy the entire current directory into the container
+COPY . .
 
-Expose port 8080 to be able to access the application
+# Build the Spring Boot application using Gradle wrapper
+RUN ./gradlew bootJar --no-daemon
+
+# Switch to a new stage using a smaller base image
+FROM openjdk:17-jdk-slim
+
+# Expose port 8080 to the outside world
 EXPOSE 8080
+
+# Copy the built JAR file from the previous stage
+COPY --from=build /app/build/libs/*.jar app.jar
+
+# Define the command to run your Spring Boot application
+ENTRYPOINT ["java", "-jar", "app.jar"]
