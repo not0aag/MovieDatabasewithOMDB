@@ -1,0 +1,14 @@
+# Use Eclipse Temurin as the base image
+FROM eclipse-temurin:17-jdk-alpine
+
+# Create a volume to store temporary files
+VOLUME /tmp
+
+# Copy the built JAR file into the Docker image
+COPY target/*.jar app.jar
+
+# Set the entry point to run the JAR file
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+
+# Expose port 8080 to be able to access the application
+EXPOSE 8080
